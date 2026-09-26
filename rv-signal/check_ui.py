@@ -33,6 +33,8 @@ async def main():
         assert await page.locator("#changeValue").inner_text() not in {"—", "0%"}
         assert await page.locator("#playbackButton").is_enabled()
         assert await page.locator("#playbackButton").inner_text() == "Play video + AI outline"
+        assert await page.locator("#playbackButton").get_attribute("data-loading") == "false"
+        assert "results ready" in (await page.locator("#modelActivity").inner_text()).lower()
         assert await page.locator(".demo-section > .demo-toolbar #playbackButton").count() == 1
         assert await page.locator(".preset-tabs").evaluate("tabs => tabs.nextElementSibling.classList.contains('demo-toolbar')")
         assert await page.locator("#playbackButton").get_attribute("data-playing") == "false"
@@ -55,7 +57,10 @@ async def main():
 
         for preset, label in [("#fluBeforeButton", "example video 2"), ("#fluAfterButton", "example video 3")]:
             await page.locator(preset).click()
+            assert await page.locator("#playbackButton").get_attribute("data-loading") == "true"
+            assert "EchoNet-RV" in await page.locator("#modelActivity").inner_text()
             await page.wait_for_function("!document.querySelector('#fluBeforeButton').disabled && document.querySelector('#usableValue').textContent.includes('/')", timeout=120_000)
+            assert await page.locator("#playbackButton").get_attribute("data-loading") == "false"
             assert await page.locator(preset).get_attribute("aria-pressed") == "true"
             assert label in (await page.locator("#resultSubtitle").inner_text()).lower()
             assert int((await page.locator("#usableValue").inner_text()).split(" / ")[1]) >= 15

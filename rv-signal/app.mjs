@@ -12,6 +12,7 @@ const framePlaceholder = document.querySelector('#framePlaceholder');
 const videoPlaceholder = document.querySelector('#videoPlaceholder');
 const windowSlider = document.querySelector('#windowSeconds');
 const playbackButton = document.querySelector('#playbackButton');
+const modelActivity = document.querySelector('#modelActivity');
 const frameCounter = document.querySelector('#frameCounter');
 const frameScrubber = document.querySelector('#frameScrubber');
 const presets = [
@@ -32,6 +33,18 @@ let busy = false;
 function report(message, kind = 'info') {
   status.textContent = message;
   status.dataset.kind = kind;
+}
+
+function modelLoading(message) {
+  playbackButton.dataset.loading = 'true';
+  playbackButton.textContent = 'Loading EchoNet-RV…';
+  modelActivity.textContent = message;
+}
+
+function modelReady(message) {
+  playbackButton.dataset.loading = 'false';
+  if (!playbackTimer) playbackButton.textContent = 'Play video + AI outline';
+  modelActivity.textContent = message;
 }
 
 function clearResults() {
@@ -129,6 +142,8 @@ function setVideo(source, label, start = null) {
   framePlaceholder.hidden = false;
   captured = false;
   clearResults();
+  if (start === null) modelReady('Select a frame and run EchoNet-RV.');
+  else modelLoading('Loading video and analyzing with EchoNet-RV…');
   document.querySelector('#videoInfo').textContent = label;
   report('Loading video…');
   updateActions();
@@ -248,6 +263,7 @@ async function analyze() {
   busy = true;
   updateActions();
   clearResults();
+  modelLoading('EchoNet-RV is analyzing the selected video…');
   const snapshotTime = capturedTime;
   try {
     video.pause();
@@ -284,6 +300,7 @@ async function analyze() {
   } finally {
     busy = false;
     updateActions();
+    modelReady(status.dataset.kind === 'warning' ? 'Analysis needs another video or window.' : 'EchoNet-RV results ready · Play video and outline in sync.');
   }
 }
 
@@ -322,10 +339,12 @@ video.addEventListener('loadeddata', async () => {
     await analyze();
   } catch (error) {
     report(`Could not load this example: ${error.message}`, 'warning');
+    modelReady('Could not analyze this video. Try another example.');
   }
 });
 video.addEventListener('error', () => {
   report('Could not load this video. Try another file or run the local server described in the README.', 'warning');
+  modelReady('Could not load this video. Try another example.');
   updateActions();
 });
 captureButton.addEventListener('click', capture);
