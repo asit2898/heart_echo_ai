@@ -1,6 +1,6 @@
 # Heart Echo AI
 
-I built a research demo that uses the [EchoNet-RV](https://github.com/echonet/RV) model to trace the right pumping chamber in heart-ultrasound video. It shows the video, its measured frame-by-frame area curve, and inspectable AI outlines alongside the standard measurements in a [published pulmonary-hypertension case](https://pmc.ncbi.nlm.nih.gov/articles/PMC13176855/#pul270319-tbl-0001). The case report does not include a matching ultrasound video: the working AI examples use separate teaching clips. This is not a clinical diagnostic tool or a measurement of 3D heart volume.
+I built a research demo around a [published pulmonary-hypertension case](https://pmc.ncbi.nlm.nih.gov/articles/PMC13176855/#pul270319-tbl-0001). The page shows the standard measurements, then sketches what three dated right-heart motion curves could add across follow-up exams. Those dated curves are illustrative, not measurements of this patient: the case report includes no matching ultrasound video. Separately, a working [EchoNet-RV](https://github.com/echonet/RV) model traces public example ultrasounds and shows their measured frame-by-frame area curves and inspectable outlines. This is not a clinical diagnostic tool or a measurement of 3D heart volume.
 
 ## Run locally
 

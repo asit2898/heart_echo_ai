@@ -20,7 +20,6 @@ ALLOWED_FILES = {
     "/rv-signal/index.html": ROOT / "rv-signal/index.html",
     "/rv-signal/styles.css": ROOT / "rv-signal/styles.css",
     "/rv-signal/app.mjs": ROOT / "rv-signal/app.mjs",
-    "/rv-signal/addendum.mjs": ROOT / "rv-signal/addendum.mjs",
     "/rv-signal/analysis.mjs": ROOT / "rv-signal/analysis.mjs",
     "/rv-signal/media/normal-a4c.webm": ROOT / "rv-signal/media/normal-a4c.webm",
     "/rv-signal/media/influenza-a4c.webm": ROOT / "rv-signal/media/influenza-a4c.webm",

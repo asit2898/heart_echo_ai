@@ -15,9 +15,9 @@ const playbackButton = document.querySelector('#playbackButton');
 const frameCounter = document.querySelector('#frameCounter');
 const frameScrubber = document.querySelector('#frameScrubber');
 const presets = [
-  { button: '#demoButton', source: 'media/normal-a4c.webm', start: 0, title: 'Normal four-chamber teaching clip', subtitle: 'Normal teaching clip · not PAH', label: 'Normal echo · CardioNetworks ECHOpedia / Wikimedia Commons · CC BY-SA 3.0' },
-  { button: '#fluBeforeButton', source: 'media/influenza-a4c.webm', start: 1, title: 'Teaching clip 2 · influenza case', subtitle: 'Teaching clip 2 · different heart', label: 'Published influenza teaching video · Quddus, Afari & Minami · CC BY 3.0 · not PAH' },
-  { button: '#fluAfterButton', source: 'media/influenza-a4c.webm', start: 14, title: 'Teaching clip 3 · same source video', subtitle: 'Teaching clip 3 · another window', label: 'Same published influenza teaching video · Quddus, Afari & Minami · CC BY 3.0 · not PAH' }
+  { button: '#demoButton', source: 'media/normal-a4c.webm', start: 0, title: 'Normal four-chamber ultrasound', subtitle: 'Normal ultrasound', label: 'Normal echo · CardioNetworks ECHOpedia / Wikimedia Commons · CC BY-SA 3.0' },
+  { button: '#fluBeforeButton', source: 'media/influenza-a4c.webm', start: 1, title: 'Example video 2 · influenza case', subtitle: 'Example video 2 · first segment', label: 'Published influenza ultrasound · Quddus, Afari & Minami · CC BY 3.0' },
+  { button: '#fluAfterButton', source: 'media/influenza-a4c.webm', start: 14, title: 'Example video 3 · same video', subtitle: 'Example video 3 · later segment', label: 'Same published influenza ultrasound · Quddus, Afari & Minami · CC BY 3.0' }
 ];
 let localVideoUrl;
 let autoTime = null;
@@ -62,7 +62,8 @@ function stopPlayback() {
   cancelAnimationFrame(playbackTimer);
   playbackTimer = null;
   video.pause();
-  playbackButton.textContent = 'Play contours';
+  playbackButton.dataset.playing = 'false';
+  playbackButton.textContent = 'Play video + AI outline';
 }
 
 function startPlayback() {
@@ -70,7 +71,8 @@ function startPlayback() {
   if (playable.length < 3) return;
   stopPlayback();
   const generation = playbackGeneration;
-  playbackButton.textContent = 'Pause contours';
+  playbackButton.dataset.playing = 'true';
+  playbackButton.textContent = 'Pause video + AI outline';
   video.muted = true;
   video.currentTime = playable[0].time;
   showSample(playable[0]);
@@ -88,7 +90,7 @@ function startPlayback() {
   }).catch(() => {
     if (generation !== playbackGeneration) return;
     stopPlayback();
-    report('Video playback was blocked. Press Play contours to try again.', 'warning');
+    report('Video playback was blocked. Press Play video + AI outline to try again.', 'warning');
   });
 }
 
@@ -120,6 +122,7 @@ function setVideo(source, label, start = null) {
   autoTime = start;
   if (localVideoUrl) URL.revokeObjectURL(localVideoUrl);
   localVideoUrl = source.startsWith('blob:') ? source : null;
+  video.controls = Boolean(localVideoUrl);
   video.src = source;
   video.load();
   videoPlaceholder.hidden = true;
@@ -232,12 +235,12 @@ function plot(results) {
     });
   });
   showSample(valid[0]);
+  video.currentTime = valid[0].time;
   frameScrubber.max = results.length - 1;
   const rejected = results.length - valid.length;
   report(valid.length < results.length
     ? `${valid.length} plausible outlines found; ${rejected} ${rejected === 1 ? 'frame' : 'frames'} rejected. Inspect the overlays before using any numbers.`
     : 'Outlines proposed. Inspect each dot and its overlay; this is not a validated medical measurement.', 'success');
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) startPlayback();
 }
 
 async function analyze() {

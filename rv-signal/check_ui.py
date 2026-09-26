@@ -19,23 +19,12 @@ async def main():
         assert (await page.locator("tr").filter(has_text="TAPSE").inner_text()).count("20 mm") == 2
         assert "25%" in await page.locator("tr").filter(has_text="RV fractional area change").inner_text()
         assert "35%" in await page.locator("tr").filter(has_text="RV fractional area change").inner_text()
-        assert await page.get_by_role("heading", name="See what the video adds").is_visible()
+        assert await page.get_by_role("heading", name="Right ventricular cavity area across visits").is_visible()
         assert await page.get_by_role("heading", name="More signal from every heartbeat.").is_visible()
-        assert await page.get_by_text("WORKING MODEL · SEPARATE TEACHING VIDEOS").is_visible()
-        await page.wait_for_function("[...document.querySelectorAll('.addendum-example .example-play')].every(button => !button.disabled)", timeout=120_000)
-        rows = page.locator(".addendum-example")
-        assert await rows.count() == 2
-        for index in range(2):
-            row = rows.nth(index)
-            assert await row.locator(".example-curve").count() == 1
-            assert "frames outlined" in await row.locator(".example-status").inner_text()
-            await row.locator(".example-play").click()
-            await page.wait_for_function("index => document.querySelectorAll('.addendum-example .example-play')[index].textContent === 'Pause clip + curve'", arg=index, timeout=10_000)
-            assert await row.locator(".example-play").inner_text() == "Pause clip + curve"
-            await page.wait_for_timeout(250)
-            assert await row.locator("video").evaluate("video => !video.paused")
-            await row.locator(".example-play").click()
-            assert await row.locator("video").evaluate("video => video.paused")
+        assert await page.get_by_text("WORKING MODEL · REAL EXAMPLE VIDEOS").is_visible()
+        assert await page.locator(".longitudinal-chart .visit-curve").count() == 3
+        assert await page.locator(".longitudinal-chart video").count() == 0
+        assert "Jan 2026" in await page.locator(".visit-legend").inner_text()
         await page.wait_for_function("document.querySelector('#usableValue').textContent.includes('/') && !document.querySelector('#demoButton').disabled", timeout=120_000)
         assert await page.locator("#demoButton").get_attribute("aria-pressed") == "true"
         assert await page.locator("#framePlaceholder").is_hidden()
@@ -43,7 +32,13 @@ async def main():
         assert int((await page.locator("#usableValue").inner_text()).split(" / ")[1]) >= 15
         assert await page.locator("#changeValue").inner_text() not in {"—", "0%"}
         assert await page.locator("#playbackButton").is_enabled()
-        assert await page.locator("#playbackButton").inner_text() == "Pause contours"
+        assert await page.locator("#playbackButton").inner_text() == "Play video + AI outline"
+        assert await page.locator(".demo-section > .demo-toolbar #playbackButton").count() == 1
+        assert await page.locator(".preset-tabs").evaluate("tabs => tabs.nextElementSibling.classList.contains('demo-toolbar')")
+        assert await page.locator("#playbackButton").get_attribute("data-playing") == "false"
+        assert await page.locator("#sourceVideo").evaluate("video => !video.controls")
+        await page.locator("#playbackButton").click()
+        assert await page.locator("#playbackButton").get_attribute("data-playing") == "true"
         start_frame = await page.locator("#frameScrubber").input_value()
         await page.wait_for_timeout(180)
         assert await page.locator("#frameScrubber").input_value() != start_frame, "Contours should play at video rate"
@@ -52,12 +47,13 @@ async def main():
         assert abs(video_time - contour_time) < 0.15, "Source and segmented playback must stay in sync"
         await page.locator("#frameScrubber").fill("12")
         assert (await page.locator("#frameCounter").inner_text()).startswith("Frame 13 /")
-        assert await page.locator("#playbackButton").inner_text() == "Play contours"
+        assert await page.locator("#playbackButton").inner_text() == "Play video + AI outline"
+        assert await page.locator("#playbackButton").get_attribute("data-playing") == "false"
         await page.locator("#playbackButton").click()
         await page.locator("#areaChart .data-point").last.click()
         assert await page.locator("#areaChart .data-point.selected").count() == 1
 
-        for preset, label in [("#fluBeforeButton", "teaching clip 2"), ("#fluAfterButton", "teaching clip 3")]:
+        for preset, label in [("#fluBeforeButton", "example video 2"), ("#fluAfterButton", "example video 3")]:
             await page.locator(preset).click()
             await page.wait_for_function("!document.querySelector('#fluBeforeButton').disabled && document.querySelector('#usableValue').textContent.includes('/')", timeout=120_000)
             assert await page.locator(preset).get_attribute("aria-pressed") == "true"
@@ -76,7 +72,7 @@ async def main():
         overflow = await page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
         assert not overflow, "Mobile layout overflows horizontally"
         assert not errors, f"Browser errors: {errors}"
-        print("PASS: auto-running default, two selectable real clips, and responsive layout")
+        print("PASS: automatic analysis, click-to-play synchronized video, and responsive layout")
         await browser.close()
 
 
